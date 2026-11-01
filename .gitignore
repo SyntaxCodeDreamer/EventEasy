@@ -11,4 +11,7 @@ venv/
 
 # Storage
 backend/data_storage/*.json
-
+DOCUMENTATION.docx
+DOCUMENTATION.md
+generate_docx.py
+.env.example

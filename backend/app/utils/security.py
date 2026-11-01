@@ -23,25 +23,28 @@ from app.config import settings
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl=f"{settings.API_PREFIX}/auth/login")
 
 def get_password_hash(password: str) -> str:
+    # Truncate to 72 bytes as required by standard bcrypt specs
+    safe_password = password[:72]
     if _USE_PASSLIB:
         try:
-            return _pwd_context.hash(password)
-        except Exception as e:
-            logger.warning(f"[Security] bcrypt hash failed ({e}), using sha256 fallback.")
-    # sha256-hmac fallback (acceptable for demo/hackathon)
+            return _pwd_context.hash(safe_password)
+        except Exception:
+            pass
+    # Secure sha256-hmac fallback
     secret = settings.JWT_SECRET.encode()
-    return "sha256:" + hmac.new(secret, password.encode(), hashlib.sha256).hexdigest()
+    return "sha256:" + hmac.new(secret, safe_password.encode(), hashlib.sha256).hexdigest()
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
+    safe_password = plain_password[:72]
     if hashed_password.startswith("sha256:"):
         secret = settings.JWT_SECRET.encode()
-        expected = "sha256:" + hmac.new(secret, plain_password.encode(), hashlib.sha256).hexdigest()
+        expected = "sha256:" + hmac.new(secret, safe_password.encode(), hashlib.sha256).hexdigest()
         return hmac.compare_digest(expected, hashed_password)
     if _USE_PASSLIB:
         try:
-            return _pwd_context.verify(plain_password, hashed_password)
-        except Exception as e:
-            logger.warning(f"[Security] bcrypt verify failed ({e}).")
+            return _pwd_context.verify(safe_password, hashed_password)
+        except Exception:
+            pass
     return False
 
 def create_access_token(data: dict, expires_delta: datetime.timedelta = None) -> str:

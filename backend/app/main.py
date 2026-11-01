@@ -40,6 +40,7 @@ async def on_startup():
     await run_all_seeds()
 
 @app.get("/")
+@app.head("/")
 async def root():
     return {
         "project": settings.PROJECT_NAME,
