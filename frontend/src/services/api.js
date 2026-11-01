@@ -1,4 +1,7 @@
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000/api";
+// Normalizes API_BASE so trailing slashes or missing '/api' paths are handled automatically
+const rawBase = import.meta.env.VITE_API_URL || "http://localhost:8000/api";
+const cleanBase = rawBase.replace(/\/+$/, "");
+const API_BASE = cleanBase.endsWith("/api") ? cleanBase : `${cleanBase}/api`;
 
 const getHeaders = () => {
   const token = localStorage.getItem("eventease_token");
